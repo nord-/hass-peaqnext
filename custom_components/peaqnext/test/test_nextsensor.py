@@ -396,3 +396,65 @@ async def test_blocked_interval_spans_middle_hours_end():
     for seq in s.all_sequences:
         spanned_hours = set(range(seq.dt_start.hour, seq.dt_end.hour + 1))
         assert 15 not in spanned_hours, f"Sequence {seq.dt_start}-{seq.dt_end} spans blocked hour 15"
+
+
+@pytest.mark.asyncio
+async def test_dst_spring_forward_23_hours():
+    """Verify that a DST spring-forward day with 23 hourly prices works correctly."""
+    prices_23h = _p.P230731[:23]  # Simulate 23-hour day
+    s = NextSensor(
+        consumption_type=ConsumptionType.PeakIn, name="test", hass_entity_id="sensor.test",
+        total_duration_in_minutes=62, total_consumption_in_kwh=1.1
+    )
+    s.dt_model.set_hour(0)
+    s.dt_model.set_minute(0)
+    s.dt_model.set_date(date(2023, 3, 26))
+    await s.async_update_sensor((prices_23h, _p.P230801))
+    assert len(s.all_sequences) > 0
+    # Tomorrow's sequences should exist (offset by 23, not hardcoded 24/96)
+    tomorrow_starts = [seq for seq in s.all_sequences if seq.dt_start.day == 27]
+    assert len(tomorrow_starts) > 0, "Should have sequences for tomorrow with 23h today"
+
+
+@pytest.mark.asyncio
+async def test_dst_fall_back_25_hours():
+    """Verify that a DST fall-back day with 25 hourly prices works correctly."""
+    prices_25h = _p.P230731 + [0.48]  # Simulate 25-hour day
+    s = NextSensor(
+        consumption_type=ConsumptionType.PeakIn, name="test", hass_entity_id="sensor.test",
+        total_duration_in_minutes=62, total_consumption_in_kwh=1.1
+    )
+    s.dt_model.set_hour(0)
+    s.dt_model.set_minute(0)
+    s.dt_model.set_date(date(2023, 10, 29))
+    await s.async_update_sensor((prices_25h, _p.P230801))
+    assert len(s.all_sequences) > 0
+    # Should have more sequences than with 24h prices
+    s2 = NextSensor(
+        consumption_type=ConsumptionType.PeakIn, name="test2", hass_entity_id="sensor.test2",
+        total_duration_in_minutes=62, total_consumption_in_kwh=1.1
+    )
+    s2.dt_model.set_hour(0)
+    s2.dt_model.set_minute(0)
+    s2.dt_model.set_date(date(2023, 10, 29))
+    await s2.async_update_sensor((_p.P230731, _p.P230801))
+    assert len(s.all_sequences) >= len(s2.all_sequences), "25h day should have at least as many sequences as 24h"
+
+
+@pytest.mark.asyncio
+async def test_nonhours_filtering_tomorrow_intervals():
+    """Verify non_hours filtering works for intervals that wrap into tomorrow."""
+    nh_start = [2, 3]
+    s = NextSensor(
+        consumption_type=ConsumptionType.Flat, name="test", hass_entity_id="sensor.test",
+        total_duration_in_minutes=120, total_consumption_in_kwh=10, non_hours_start=nh_start
+    )
+    s.dt_model.set_hour(20)
+    s.dt_model.set_minute(0)
+    s.dt_model.set_date(date(2023, 7, 31))
+    await s.async_update_sensor((_p.P230731, _p.P230801))
+    # Sequences starting at tomorrow hour 2 or 3 should be filtered out
+    for seq in s.all_sequences:
+        assert seq.dt_start.hour not in nh_start, (
+            f"Sequence starting at {seq.dt_start} should be blocked (hour {seq.dt_start.hour} in non_hours_start)"
+        )
