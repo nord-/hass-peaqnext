@@ -153,12 +153,11 @@ def _blocked_interval(
         non_intervals_start: list[int],
         non_intervals_end: list[int]
 ) -> bool:
-    return any([
-        end_idx in non_intervals_end,
-        end_idx - 24 in non_intervals_end,  # Tomorrow's equivalent hour
-        idx in non_intervals_start,
-        idx - 24 in non_intervals_start,  # Tomorrow's equivalent hour
-    ])
+    for hour in range(idx, end_idx + 1):
+        normalized = hour % 24
+        if normalized in non_intervals_start or normalized in non_intervals_end:
+            return True
+    return False
 
 
 def _get_interval_index(dt: datetime) -> int:
