@@ -133,8 +133,9 @@ def _create_prices_dict(prices: tuple[list, list], current_interval: int) -> dic
     # Today's prices starting from current interval
     prices_dict = {k: v for k, v in enumerate(prices[0]) if k >= current_interval}
 
-    # Tomorrow's prices (offset by 24 hours)
-    prices_dict.update({k + 24: v for k, v in enumerate(prices[1])})
+    # Tomorrow's prices (offset by today's price count to handle DST days with 23/25 hours)
+    today_count = len(prices[0]) if prices[0] else 24
+    prices_dict.update({k + today_count: v for k, v in enumerate(prices[1])})
 
     return prices_dict
 

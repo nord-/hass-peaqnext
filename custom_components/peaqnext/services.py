@@ -29,7 +29,7 @@ async def async_prepare_register_services(hub: Hub, hass: HomeAssistant) -> None
     async def async_servicehandler_override_sensor_data(call):
         _sensor = _parse_sensor_id(call.data.get("sensor_entity", None))
         if _sensor:
-            _LOGGER.debug("Calling {} service".format(ServiceCalls.OVERRIDE_SENSOR_DATA.value))
+            _LOGGER.debug(f"Calling {ServiceCalls.OVERRIDE_SENSOR_DATA.value} service")
             await _sensor.async_override_sensor_data(
                 total_consumption_in_kwh=call.data.get("consumption_in_kwh", None), 
                 total_duration_in_minutes=call.data.get("duration_in_minutes", None), 
@@ -44,7 +44,7 @@ async def async_prepare_register_services(hub: Hub, hass: HomeAssistant) -> None
     async def async_servicehandler_cancel_override(call):
         _sensor = _parse_sensor_id(call.data.get("sensor_entity", None))
         if _sensor:
-            _LOGGER.debug("Calling {} service".format(ServiceCalls.CANCEL_OVERRIDE.value))
+            _LOGGER.debug(f"Calling {ServiceCalls.CANCEL_OVERRIDE.value} service")
             await _sensor.async_cancel_override()
         else:
             _LOGGER.error(f"Unable to parse sensor id for service call: {ServiceCalls.CANCEL_OVERRIDE.value}. input: {call.data.get('sensor_entity')}")
@@ -57,4 +57,4 @@ async def async_prepare_register_services(hub: Hub, hass: HomeAssistant) -> None
 
     for service, handler in SERVICES.items():
         hass.services.async_register(DOMAIN, service.value, handler)
-    _LOGGER.debug("Registered services: {}".format(SERVICES.keys()))
+    _LOGGER.debug(f"Registered services: {SERVICES.keys()}")

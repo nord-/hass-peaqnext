@@ -29,7 +29,7 @@ class PeaqNextSensor(SensorEntity):
         self._attr_name = name
         self._attr_available = True
         self._state: Optional[str] = None
-        self._all_seqeuences: list[PeriodModel] | None = None
+        self._all_sequences: list[PeriodModel] | None = None
         self._consumption_type = None
         self._duration_in_minutes = None
         self._consumption_in_kwh = None
@@ -56,7 +56,7 @@ class PeaqNextSensor(SensorEntity):
         try:
             status = await self.hub.async_get_updates(nametoid(self.given_name))
             self._raw_start = self._set_raw_start(status["best_close_start"].dt_start)
-            self._all_seqeuences = self._make_dict(status.get("all_sequences", []))
+            self._all_sequences = self._make_dict(status.get("all_sequences", []))
             self._state = self._make_string(status["best_close_start"])
             self._consumption_type = status["consumption_type"]
             self._duration_in_minutes = status["duration_in_minutes"]
@@ -75,7 +75,7 @@ class PeaqNextSensor(SensorEntity):
     @property
     def extra_state_attributes(self) -> dict:
         attr_dict = {
-            "All sequences": self._all_seqeuences,
+            "All sequences": self._all_sequences,
             "Consumption type": self._consumption_type,
             "Duration in minutes": self._duration_in_minutes,
             "Consumption in kWh": self._consumption_in_kwh,

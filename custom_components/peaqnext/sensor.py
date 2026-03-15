@@ -9,7 +9,7 @@ from custom_components.peaqnext.const import DOMAIN, HUB
 from custom_components.peaqnext.sensors.next_sensor import PeaqNextSensor
 
 _LOGGER = logging.getLogger(__name__)
-SCAN_INTERVAL = timedelta(seconds=4)
+SCAN_INTERVAL = timedelta(seconds=60)
 
 
 async def async_setup_entry(
