@@ -401,7 +401,7 @@ async def test_blocked_interval_spans_middle_hours_end():
 
 @pytest.mark.asyncio
 async def test_dst_spring_forward_23_hours():
-    """Verify that a DST spring-forward day with 23 hourly prices works correctly."""
+    """Verify that a 23-hour price array (as delivered during DST spring-forward) is handled correctly."""
     prices_23h = _p.P230731[:23]  # Simulate 23-hour day
     s = NextSensor(
         consumption_type=ConsumptionType.PeakIn, name="test", hass_entity_id="sensor.test",
@@ -419,7 +419,7 @@ async def test_dst_spring_forward_23_hours():
 
 @pytest.mark.asyncio
 async def test_dst_fall_back_25_hours():
-    """Verify that a DST fall-back day with 25 hourly prices works correctly."""
+    """Verify that a 25-hour price array (as delivered during DST fall-back) is handled correctly."""
     prices_25h = _p.P230731 + [0.48]  # Simulate 25-hour day
     s = NextSensor(
         consumption_type=ConsumptionType.PeakIn, name="test", hass_entity_id="sensor.test",
