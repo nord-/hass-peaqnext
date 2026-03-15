@@ -70,7 +70,7 @@ def cheapest_interval(
 
     try:
         return ret[0]
-    except Exception as e:
+    except IndexError as e:
         _LOGGER.error(
             f"Unable to get cheapest interval. Exception: {e}. "
             f"Data: hour_limit:{hour_limit}, "
@@ -95,8 +95,8 @@ def _list_all_intervals(prices: tuple[list, list], consumption_pattern: list, cu
                 for i in range(len(consumption_pattern))
             )
             sequences[interval_idx] = round(internal_sum, 2)
-        except Exception as e:
-            _LOGGER.exception("Error in _list_all_intervals: %s", e)
+        except KeyError as e:
+            _LOGGER.debug("Missing price key in _list_all_intervals: %s", e)
             continue
 
     return sequences
@@ -153,12 +153,17 @@ def _blocked_interval(
         non_intervals_start: list[int],
         non_intervals_end: list[int]
 ) -> bool:
-    return any([
-        end_idx in non_intervals_end,
-        end_idx - 24 in non_intervals_end,  # Tomorrow's equivalent hour
-        idx in non_intervals_start,
-        idx - 24 in non_intervals_start,  # Tomorrow's equivalent hour
-    ])
+    start_hour = idx % 24
+    end_hour = end_idx % 24
+    if start_hour <= end_hour:
+        hours = range(start_hour, end_hour + 1)
+    else:
+        # Interval wraps past midnight
+        hours = list(range(start_hour, 24)) + list(range(0, end_hour + 1))
+    for h in hours:
+        if h in non_intervals_start or h in non_intervals_end:
+            return True
+    return False
 
 
 def _get_interval_index(dt: datetime) -> int:

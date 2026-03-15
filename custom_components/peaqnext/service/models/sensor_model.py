@@ -159,34 +159,34 @@ class NextSensor(NextSensorData):
 
     async def async_override_sensor_data(
             self,
-            total_consumption_in_kwh: float|None = None, 
+            total_consumption_in_kwh: float|None = None,
             total_duration_in_minutes: int|None = None,
             custom_consumption_pattern: str|None = None,
             non_hours_start: list[int]|None = None,
             non_hours_end: list[int]|None = None,
             timeout: Any = None
             ) -> None:
-            do_override: bool = False
-            self.override_model.timeout = timeout
-            pattern = self._validate_custom_pattern(custom_consumption_pattern)
-            if len(pattern) > 0:
-                do_override = True
-                self.override_model.custom_consumption_pattern_list = pattern
-            if total_consumption_in_kwh is not None:
-                do_override = True
-                self.override_model.total_consumption_in_kwh = total_consumption_in_kwh
-            if total_duration_in_minutes is not None:
-                do_override = True
-                self.override_model.total_duration_in_minutes = total_duration_in_minutes
-            if non_hours_start is not None:
-                do_override = True
-                self.override_model.non_hours_start = non_hours_start
-            if non_hours_end is not None:
-                do_override = True
-                self.override_model.non_hours_end = non_hours_end
-            self.override_model.override = do_override
-            self.override = do_override
-            self._update_sensor_internal()
+        do_override: bool = False
+        self.override_model.timeout = timeout
+        pattern = self._validate_custom_pattern(custom_consumption_pattern)
+        if len(pattern) > 0:
+            do_override = True
+            self.override_model.custom_consumption_pattern_list = pattern
+        if total_consumption_in_kwh is not None:
+            do_override = True
+            self.override_model.total_consumption_in_kwh = total_consumption_in_kwh
+        if total_duration_in_minutes is not None:
+            do_override = True
+            self.override_model.total_duration_in_minutes = total_duration_in_minutes
+        if non_hours_start is not None:
+            do_override = True
+            self.override_model.non_hours_start = non_hours_start
+        if non_hours_end is not None:
+            do_override = True
+            self.override_model.non_hours_end = non_hours_end
+        self.override_model.override = do_override
+        self.override = do_override
+        self._update_sensor_internal()
 
     async def async_cancel_override(self) -> None:
         self.override = False
