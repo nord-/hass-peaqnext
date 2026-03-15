@@ -1,26 +1,9 @@
-> 2024-10-08
-> 
-> Dear Peaquser,
-> 
-> After three years of open source in these projects, I am about to set sail on the next leg of my journey.
-> I will soon start a job where I will work with adjacent technology, and thus will seize to update the repos with new features.
-> This is to not be questioned regarding IP going forward.
-> 
-> For the time being I want to let the codebases stay online, and will accept pull requests and occasionally do patch updates and bug fixes to > keep the solutions running.
-> However, I will not take part in general feature discussions any longer, starting from 2024-11-01.
-> 
-> If you wish you may fork the projects and create features that you send me as pull requests. That way we can keep the flow going without > my direct interference in the inventions.
-> For any usage not covered by the general download by hacs, look towards the license on the repos for guidance. Here's a snapshot of what > the licenses on my code requires: https://creativecommons.org/licenses/by-nc-nd/4.0/deed.en
-> 
-> Thanks for all engagement and happy to have helped a bunch of people with this spare time invention of mine. 
-> //Magnus
-
 <img src="https://raw.githubusercontent.com/creativecommons/cc-assets/main/license_badges/big/by_nc_nd.svg" width="90">
 
-[![Peaqnext_downloads](https://img.shields.io/github/downloads/elden1337/hass-peaqnext/total)](https://github.com/elden1337/hass-peaqnext) 
-[![hass-peaqnext_downloads](https://img.shields.io/github/downloads/elden1337/hass-peaqnext/latest/total)](https://github.com/elden1337/hass-peaqnext)
-[![Paypal](https://img.shields.io/badge/Sponsor-PayPal-orange.svg)](https://www.paypal.com/donate/?hosted_button_id=GLGW8QAAQC2FG)
-[![BuyMeACoffee](https://img.shields.io/badge/Sponsor-BuyMeACoffee-orange.svg)](https://buymeacoffee.com/elden)
+This is a maintained fork of [elden1337/hass-peaqnext](https://github.com/elden1337/hass-peaqnext) with bug fixes and stability improvements.
+
+[![Peaqnext_downloads](https://img.shields.io/github/downloads/nord-/hass-peaqnext/total)](https://github.com/nord-/hass-peaqnext)
+[![hass-peaqnext_downloads](https://img.shields.io/github/downloads/nord-/hass-peaqnext/latest/total)](https://github.com/nord-/hass-peaqnext)
 
 # Peaqnext utility sensors
 
@@ -28,11 +11,16 @@
 <img src="https://raw.githubusercontent.com/elden1337/hass-peaq/main/assets/icon.png" width="125">
 
 ## Installation
-Preferred if you have HACS installed is to search for Peaqnext there.
 
-Otherwise you may:
+### HACS (recommended)
+1. In HACS, go to Integrations → three-dot menu → *Custom repositories*
+2. Add `nord-/hass-peaqnext` as an *Integration*
+3. Search for Peaqnext and download it
+4. Restart Home Assistant
+
+### Manual
 - Copy `custom_components/peaqnext` folder to `<config_dir>/custom_components/peaqnext/`
-- Restart Home assistant
+- Restart Home Assistant
 - Go to Configuration > Devices & Services > Add integration
 
 ### Config setup:
