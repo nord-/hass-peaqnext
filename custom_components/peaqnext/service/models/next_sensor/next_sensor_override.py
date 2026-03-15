@@ -35,7 +35,7 @@ class NextSensorOverride(NextSensorData):
         """parsed timeout used for override-bool"""
         try:
             return self._parsed_timeout
-        except:
+        except AttributeError:
             return None
     
     @parsed_timeout.setter
@@ -54,6 +54,6 @@ class NextSensorOverride(NextSensorData):
         if isinstance(timeout, str):
             try:
                 return datetime.strptime(timeout, "%Y-%m-%dT%H:%M:%S.%f")
-            except:
+            except ValueError:
                 return None
         return None
