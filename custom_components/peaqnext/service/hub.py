@@ -48,9 +48,9 @@ class Hub:
                 )
 
     async def async_get_updates(self, sensor_id: str) -> dict:
-        if time.time() - self.latest_spotprice_update > SPOTPRICE_UPDATE_FORCE:
+        if time.monotonic() - self.latest_spotprice_update > SPOTPRICE_UPDATE_FORCE:
             await self.spotprice.async_update_spotprice()
-            self.latest_spotprice_update = time.time()
+            self.latest_spotprice_update = time.monotonic()
             await self.async_update_prices(
                 (self.spotprice.prices, self.spotprice.prices_tomorrow)
             )
