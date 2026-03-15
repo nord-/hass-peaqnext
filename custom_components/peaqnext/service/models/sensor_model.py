@@ -71,8 +71,8 @@ class NextSensor(NextSensorData):
         pattern = custom_consumption_pattern.split(",")
         try:
             pattern = [float(x) for x in pattern]
-        except Exception as e:
-            raise Exception(f"Invalid custom consumption pattern provided: {e}")
+        except ValueError as e:
+            raise ValueError(f"Invalid custom consumption pattern provided: {e}")
         return pattern  
 
     @property
