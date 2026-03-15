@@ -153,9 +153,15 @@ def _blocked_interval(
         non_intervals_start: list[int],
         non_intervals_end: list[int]
 ) -> bool:
-    for hour in range(idx, end_idx + 1):
-        normalized = hour % 24
-        if normalized in non_intervals_start or normalized in non_intervals_end:
+    start_hour = idx % 24
+    end_hour = end_idx % 24
+    if start_hour <= end_hour:
+        hours = range(start_hour, end_hour + 1)
+    else:
+        # Interval wraps past midnight
+        hours = list(range(start_hour, 24)) + list(range(0, end_hour + 1))
+    for h in hours:
+        if h in non_intervals_start or h in non_intervals_end:
             return True
     return False
 
