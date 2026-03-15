@@ -36,6 +36,7 @@ async def async_remove_config_entry_device(
     hass: HomeAssistant, config_entry: ConfigEntry, device_entry: DeviceEntry
 ) -> bool:
     """Remove a config entry from a device."""
+    return True
 
 async def async_create_internal_sensors(conf: ConfigEntry) -> list[NextSensor]:
     sensors = []
