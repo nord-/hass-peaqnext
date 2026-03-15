@@ -69,9 +69,8 @@ class PeaqNextSensor(SensorEntity):
             self._update_by = status.get("update_by", None)
             self._calculate_by = status.get("calculate_by", None)
             self._relative_time = status.get("relative_time", False)
-        except Exception as e:
+        except (KeyError, TypeError, AttributeError) as e:
             _LOGGER.debug(f"status for {self.given_name}: {status}. Exception: {e}")
-            pass
 
     @property
     def extra_state_attributes(self) -> dict:

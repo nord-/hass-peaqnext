@@ -70,7 +70,7 @@ def cheapest_interval(
 
     try:
         return ret[0]
-    except Exception as e:
+    except IndexError as e:
         _LOGGER.error(
             f"Unable to get cheapest interval. Exception: {e}. "
             f"Data: hour_limit:{hour_limit}, "
@@ -95,8 +95,8 @@ def _list_all_intervals(prices: tuple[list, list], consumption_pattern: list, cu
                 for i in range(len(consumption_pattern))
             )
             sequences[interval_idx] = round(internal_sum, 2)
-        except Exception as e:
-            _LOGGER.exception("Error in _list_all_intervals: %s", e)
+        except KeyError as e:
+            _LOGGER.debug("Missing price key in _list_all_intervals: %s", e)
             continue
 
     return sequences
