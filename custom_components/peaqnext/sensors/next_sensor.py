@@ -158,20 +158,22 @@ class PeaqNextSensor(SensorEntity):
         return "⁺¹" if comparer else ""
 
     @staticmethod
-    def _add_now_to_date(model: PeriodModel) -> str:
-        return ">> " if model.dt_start.day == datetime.now().day and model.dt_start.hour == datetime.now().hour else ""
+    def _add_now_to_date(model: PeriodModel, now: datetime) -> str:
+        return ">> " if model.dt_start.day == now.day and model.dt_start.hour == now.hour else ""
 
     def _make_hours_display(self, model: PeriodModel) -> str:
         """Display time period with minute precision for absolute times, hour precision for relative."""
         if not self._check_hourmodel(model):
             return ""
 
+        now = datetime.now()
+
         if not self._relative_time:
             # Absolute time display - keep minute precision
-            tomorrow1: str = self._get_tomorrow_assignation(model.dt_start.day > datetime.now().day)
-            tomorrow2: str = self._get_tomorrow_assignation(model.dt_end.day > datetime.now().day)
+            tomorrow1: str = self._get_tomorrow_assignation(model.dt_start.day > now.day)
+            tomorrow2: str = self._get_tomorrow_assignation(model.dt_end.day > now.day)
             ret = f"{model.dt_start.strftime('%H:%M')}{tomorrow1}-{model.dt_end.strftime('%H:%M')}{tomorrow2}"
-            return f"{self._add_now_to_date(model)}{ret}"
+            return f"{self._add_now_to_date(model, now)}{ret}"
 
         # Relative time display - use hour precision only (matches appliance delay buttons)
         differ = model.dt_start
@@ -180,10 +182,10 @@ class PeaqNextSensor(SensorEntity):
             differ = model.dt_end
             prefix = "End "
 
-        hour_diff = round((differ - datetime.now()).total_seconds() / 3600, 0)
+        hour_diff = round((differ - now).total_seconds() / 3600, 0)
 
         if hour_diff == 0:
-            return f"{self._add_now_to_date(model)}{prefix}now "
+            return f"{self._add_now_to_date(model, now)}{prefix}now "
 
-        return f"{self._add_now_to_date(model)}{prefix}in {int(hour_diff)}h "
+        return f"{self._add_now_to_date(model, now)}{prefix}in {int(hour_diff)}h "
         
