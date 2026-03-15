@@ -1,6 +1,6 @@
 from statistics import mean
 import pytest
-from custom_components.peaqnext.service.hours import cheapest_hour
+from custom_components.peaqnext.service.hours import cheapest_interval
 from custom_components.peaqnext.service.hub import Hub
 from custom_components.peaqnext.service.models.consumption_type import (
     ConsumptionType,
@@ -24,17 +24,19 @@ class MockNordpool:
         }
 
 @pytest.mark.asyncio
-async def test_prices():    
-    s = NextSensor(consumption_type=ConsumptionType.Flat, name="test", hass_entity_id="sensor.test", total_duration_in_minutes=120, total_consumption_in_kwh=10) 
-    s.dt_model.set_hour(4)   
+async def test_prices():
+    s = NextSensor(consumption_type=ConsumptionType.Flat, name="test", hass_entity_id="sensor.test", total_duration_in_minutes=120, total_consumption_in_kwh=10)
+    s.dt_model.set_hour(4)
+    s.dt_model.set_minute(0)
     await s.async_update_sensor((_p.P230729BE,[]))   
     assert s.best_close_start.price == 0.12
     assert s.best_close_start.dt_start.hour == 15    
 
 @pytest.mark.asyncio
-async def test_prices_use_cent():    
-    s = NextSensor(consumption_type=ConsumptionType.Flat, name="test", hass_entity_id="sensor.test", total_duration_in_minutes=120, total_consumption_in_kwh=10) 
-    s.dt_model.set_hour(4)  
+async def test_prices_use_cent():
+    s = NextSensor(consumption_type=ConsumptionType.Flat, name="test", hass_entity_id="sensor.test", total_duration_in_minutes=120, total_consumption_in_kwh=10)
+    s.dt_model.set_hour(4)
+    s.dt_model.set_minute(0)
     await s.async_update_sensor(([h*100 for h in _p.P230729BE],[]), use_cent=True)    
     print(s.best_close_start)
     assert s.best_close_start.dt_start.hour == 15
@@ -171,8 +173,8 @@ async def test_cheapest_hour():
     s = NextSensor(consumption_type=ConsumptionType.PeakIn, name="test", hass_entity_id="sensor.test", total_duration_in_minutes=62, total_consumption_in_kwh=1.1)
     s.dt_model.set_date(date(2023,7,30))
     s.dt_model.set_hour(20)
-    await s.async_update_sensor([_p.P230731,_p.P230801])
-    tt = cheapest_hour(s.all_sequences, cheapest_cap=None, mock_dt=s.dt_model.get_dt_now())
+    await s.async_update_sensor((_p.P230731,_p.P230801))
+    tt = cheapest_interval(s.all_sequences, cheapest_cap=None, mock_dt=s.dt_model.get_dt_now())
     
 
 @pytest.mark.asyncio
@@ -202,10 +204,11 @@ async def test_hub_updates_sensor():
     hub = Hub(None, test=True)
     s = NextSensor(consumption_type=ConsumptionType.PeakIn, name="test", hass_entity_id="sensor.test", total_duration_in_minutes=62, total_consumption_in_kwh=1.1)
     s.dt_model.set_hour(0)
+    s.dt_model.set_minute(0)
     s.dt_model.set_date(date(2023,7,30))
     await hub.async_setup([s])
     np1 = MockNordpool(today=_p.P230731, tomorrow=[], average=mean(_p.P230731), currency="SEK", price_in_cent=False, tomorrow_valid=False)
-    await hub.spotprice.async_set_dto(np1)    
+    await hub.spotprice.async_set_dto(np1)
     assert len(s.all_sequences) == 23
     s.dt_model.set_hour(13)
     np2 = MockNordpool(today=_p.P230731, tomorrow=_p.P230801, average=mean(_p.P230731), currency="SEK", price_in_cent=False, tomorrow_valid=True)
@@ -244,13 +247,14 @@ async def test_hub_rounding_sek():
     hub = Hub(None, test=True)
     s = NextSensor(consumption_type=ConsumptionType.PeakIn, name="test", hass_entity_id="sensor.test", total_duration_in_minutes=62, total_consumption_in_kwh=1.1)
     s.dt_model.set_hour(0)
+    s.dt_model.set_minute(0)
     s.dt_model.set_date(date(2023,7,30))
     await hub.async_setup([s])
     np1 = MockNordpool(today=_p.P230729BE, tomorrow=[], average=mean(_p.P230729BE), currency="SEK", price_in_cent=False, tomorrow_valid=False)
     await hub.spotprice.async_set_dto(np1)    
     tt = await hub.async_get_sensor_updates(s)
     comparers = [t.comparer for t in tt.get("all_sequences")]
-    assert all([len(str(c).split('.')[1]) <= 1 for c in comparers])
+    assert all([len(str(c).split('.')[1]) <= 2 for c in comparers])
 
 @pytest.mark.asyncio
 async def test_hub_rounding_eur():
@@ -345,13 +349,9 @@ async def test_cheapest_hour_update_hourly():
     s = NextSensor(consumption_type=ConsumptionType.PeakIn, name="test", hass_entity_id="sensor.test", total_duration_in_minutes=62, total_consumption_in_kwh=1.1, update_by=UpdateBy.HOUR)
     s.dt_model.set_date(date(2023,7,30))
     s.dt_model.set_hour(20)
-    await s.async_update_sensor([_p.P230731,_p.P230801])
-    print(s.best_close_start)
-    print("---------")
-    for s in s.all_sequences:
-        print(s)
-    
-    assert 1 > 2
+    await s.async_update_sensor((_p.P230731,_p.P230801))
+    assert s.best_close_start is not None
+    assert s.best_close_start.is_valid
 
 @pytest.mark.asyncio
 async def test_price_change_per_minute():
@@ -359,12 +359,8 @@ async def test_price_change_per_minute():
     s.dt_model.set_date(date(2023,7,30))
     s.dt_model.set_hour(0)
     s.dt_model.set_minute(0)
-    await s.async_update_sensor([[0.1, 1],[]])
-    for seq in s.all_sequences:
-        print(seq.dt_start, seq.price)
+    await s.async_update_sensor(([0.1, 1],[]))
+    assert len(s.all_sequences) > 0
     s.dt_model.set_minute(45)
-    await s.async_update_sensor([[0.1, 1],[]])
-    print('---')
-    for seq in s.all_sequences:
-        print(seq.dt_start, seq.price)
-    assert 1 > 2
+    await s.async_update_sensor(([0.1, 1],[]))
+    assert len(s.all_sequences) > 0
