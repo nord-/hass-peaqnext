@@ -5,7 +5,7 @@ from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from custom_components.peaqnext.const import DOMAIN
+from custom_components.peaqnext.const import DOMAIN, HUB
 from custom_components.peaqnext.sensors.next_sensor import PeaqNextSensor
 
 _LOGGER = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ async def async_setup_entry(
 ):
     """Add sensors for passed config_entry in HA."""
 
-    hub = hass.data[DOMAIN]["hub"]
+    hub = hass.data[DOMAIN][f"{HUB}_{config.entry_id}"]
     hass.async_create_task(async_setup(hub, config, async_add_entities))
 
 

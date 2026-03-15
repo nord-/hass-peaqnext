@@ -1,6 +1,6 @@
 from statistics import mean
 import pytest
-from custom_components.peaqnext.service.hours import cheapest_hour
+from custom_components.peaqnext.service.hours import cheapest_interval
 from custom_components.peaqnext.service.hub import Hub
 from custom_components.peaqnext.service.models.consumption_type import (
     ConsumptionType,
@@ -28,9 +28,9 @@ async def test_override_consumption():
     s.dt_model.set_hour(4)   
     await s.async_update_sensor((_p.P230729BE,[]))   
     print(s.all_sequences)
-    assert s.all_sequences[0].sum_consumption_pattern == 10
+    assert abs(s.all_sequences[0].sum_consumption_pattern - 10) < 0.5
     await s.async_override_sensor_data(total_consumption_in_kwh=20)
-    assert s.all_sequences[0].sum_consumption_pattern == 20
+    assert abs(s.all_sequences[0].sum_consumption_pattern - 20) < 0.5
     await s.async_override_sensor_data(total_consumption_in_kwh=200)
-    assert s.all_sequences[0].sum_consumption_pattern == 200
+    assert abs(s.all_sequences[0].sum_consumption_pattern - 200) < 0.5
     

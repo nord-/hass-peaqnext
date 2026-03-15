@@ -189,12 +189,13 @@ class NextSensor(NextSensorData):
             self._update_sensor_internal()
 
     async def async_cancel_override(self) -> None:
+        self.override = False
         self.override_model = NextSensorOverride(
-            total_consumption_in_kwh=self.total_consumption_in_kwh, 
-            total_duration_in_minutes=self.total_duration_in_minutes, 
-            custom_consumption_pattern_list=self.custom_consumption_pattern_list, 
-            non_hours_start=self.non_hours_start, 
-            non_hours_end=self.non_hours_end,
+            total_consumption_in_kwh=object.__getattribute__(self, 'total_consumption_in_kwh'),
+            total_duration_in_minutes=object.__getattribute__(self, 'total_duration_in_minutes'),
+            custom_consumption_pattern_list=object.__getattribute__(self, 'custom_consumption_pattern_list'),
+            non_hours_start=object.__getattribute__(self, 'non_hours_start'),
+            non_hours_end=object.__getattribute__(self, 'non_hours_end'),
             dt_model=self.dt_model
             )
         self._update_sensor_internal()

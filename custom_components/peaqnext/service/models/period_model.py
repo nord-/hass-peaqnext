@@ -15,7 +15,10 @@ class PeriodModel:
     comparer: float = field(init=False) 
 
     def __post_init__(self):
-        if self.use_cent:            
-            self.price = round(self.price/100,2)        
-        self.perkwh=round(self.price / self.sum_consumption_pattern, (2+int(self.comparer_addition)))
+        if self.use_cent:
+            self.price = round(self.price/100,2)
+        if self.sum_consumption_pattern > 0:
+            self.perkwh=round(self.price / self.sum_consumption_pattern, (2+int(self.comparer_addition)))
+        else:
+            self.perkwh = 0.0
         self.comparer=round(self.price,(1+int(self.comparer_addition)))

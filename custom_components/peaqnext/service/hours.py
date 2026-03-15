@@ -5,8 +5,8 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 MAX_TIME_DIFF = 48  # hours
-MINUTES_PER_INTERVAL = 15
-INTERVALS_PER_HOUR = 60 // MINUTES_PER_INTERVAL  # 4 intervals per hour
+MINUTES_PER_INTERVAL = 60
+INTERVALS_PER_HOUR = 1
 
 
 def get_intervals_sorted(
@@ -133,8 +133,8 @@ def _create_prices_dict(prices: tuple[list, list], current_interval: int) -> dic
     # Today's prices starting from current interval
     prices_dict = {k: v for k, v in enumerate(prices[0]) if k >= current_interval}
 
-    # Tomorrow's prices (offset by 96 intervals = 24 hours)
-    prices_dict.update({k + 96: v for k, v in enumerate(prices[1])})
+    # Tomorrow's prices (offset by 24 hours)
+    prices_dict.update({k + 24: v for k, v in enumerate(prices[1])})
 
     return prices_dict
 
@@ -155,14 +155,14 @@ def _blocked_interval(
 ) -> bool:
     return any([
         end_idx in non_intervals_end,
-        end_idx - 96 in non_intervals_end,  # Yesterday's equivalent interval
+        end_idx - 24 in non_intervals_end,  # Tomorrow's equivalent hour
         idx in non_intervals_start,
-        idx - 96 in non_intervals_start,  # Yesterday's equivalent interval
+        idx - 24 in non_intervals_start,  # Tomorrow's equivalent hour
     ])
 
 
 def _get_interval_index(dt: datetime) -> int:
-    return (dt.hour * INTERVALS_PER_HOUR) + (dt.minute // MINUTES_PER_INTERVAL)
+    return dt.hour
 
 
 def _get_datetime(mock_dt: datetime = None) -> datetime:

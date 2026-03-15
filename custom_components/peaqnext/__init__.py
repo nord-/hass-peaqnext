@@ -23,7 +23,7 @@ async def async_setup_entry(hass: HomeAssistant, conf: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][conf.entry_id] = conf.data
     hub = Hub(hass)
-    hass.data[DOMAIN][HUB] = hub
+    hass.data[DOMAIN][f"{HUB}_{conf.entry_id}"] = hub
     internal_sensors = await async_create_internal_sensors(conf)
     await hub.async_setup(internal_sensors)
 
@@ -36,6 +36,7 @@ async def async_remove_config_entry_device(
     hass: HomeAssistant, config_entry: ConfigEntry, device_entry: DeviceEntry
 ) -> bool:
     """Remove a config entry from a device."""
+    return True
 
 async def async_create_internal_sensors(conf: ConfigEntry) -> list[NextSensor]:
     sensors = []
