@@ -364,3 +364,35 @@ async def test_price_change_per_minute():
     s.dt_model.set_minute(45)
     await s.async_update_sensor(([0.1, 1],[]))
     assert len(s.all_sequences) > 0
+
+
+@pytest.mark.asyncio
+async def test_blocked_interval_spans_middle_hours():
+    """Verify that intervals spanning through a blocked hour are filtered out, not just start/end."""
+    nh_start = [10]
+    s = NextSensor(
+        consumption_type=ConsumptionType.Flat, name="test", hass_entity_id="sensor.test",
+        total_duration_in_minutes=180, total_consumption_in_kwh=10, non_hours_start=nh_start
+    )
+    s.dt_model.set_hour(2)
+    s.dt_model.set_minute(0)
+    await s.async_update_sensor((_p.P230729BE, []), use_cent=False)
+    for seq in s.all_sequences:
+        spanned_hours = set(range(seq.dt_start.hour, seq.dt_end.hour + 1))
+        assert 10 not in spanned_hours, f"Sequence {seq.dt_start}-{seq.dt_end} spans blocked hour 10"
+
+
+@pytest.mark.asyncio
+async def test_blocked_interval_spans_middle_hours_end():
+    """Verify that intervals spanning through a blocked end hour are filtered out."""
+    nh_end = [15]
+    s = NextSensor(
+        consumption_type=ConsumptionType.Flat, name="test", hass_entity_id="sensor.test",
+        total_duration_in_minutes=180, total_consumption_in_kwh=10, non_hours_end=nh_end
+    )
+    s.dt_model.set_hour(2)
+    s.dt_model.set_minute(0)
+    await s.async_update_sensor((_p.P230729BE, []), use_cent=False)
+    for seq in s.all_sequences:
+        spanned_hours = set(range(seq.dt_start.hour, seq.dt_end.hour + 1))
+        assert 15 not in spanned_hours, f"Sequence {seq.dt_start}-{seq.dt_end} spans blocked hour 15"
