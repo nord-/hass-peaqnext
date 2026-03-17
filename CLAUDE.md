@@ -63,25 +63,14 @@ The algorithm in `hours.py` works with **hourly** price arrays (24/23/25 entries
 
 ## Releasing
 
-HACS requires a zip asset attached to each GitHub release (`hacs.json` has `zip_release: true`).
+Releases are fully automated via GitHub Actions:
 
-```bash
-# 1. Bump version in manifest.json
-# 2. Commit and push
-# 3. Create release with zip:
-python -c "
-import zipfile, glob, os
-base = 'custom_components/peaqnext'
-with zipfile.ZipFile('peaqnext.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
-    for f in glob.glob(base + '/**', recursive=True):
-        if os.path.isfile(f) and '__pycache__' not in f and os.sep + 'test' + os.sep not in f:
-            zf.write(f, os.path.relpath(f, base).replace(os.sep, '/'))
-"
-gh release create vX.Y.Z --title "vX.Y.Z" --notes "..."
-gh release upload vX.Y.Z peaqnext.zip
-rm peaqnext.zip
-```
+1. Update `CHANGELOG.md` with a new `## vX.Y.Z` section
+2. Bump `version` in `custom_components/peaqnext/manifest.json`
+3. Commit and push to main
 
-- Zip must use **forward slashes** in paths (not Windows backslashes)
-- Zip must **exclude** test files and `__pycache__`
-- Files must be at the **root** of the zip (no `custom_components/peaqnext/` prefix)
+This triggers:
+- **`auto-release.yml`** — detects version bump, creates a GitHub release with notes from `CHANGELOG.md`
+- **`release.yml`** — triggered by the new release, builds and attaches `peaqnext.zip` (HACS requirement via `hacs.json` `zip_release: true`)
+
+The zip must have files at the **root** (no `custom_components/peaqnext/` prefix), exclude test files and `__pycache__`.

@@ -31,11 +31,22 @@ jobs:
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Extract changelog for version
+        if: steps.version.outputs.changed == 'true'
+        id: changelog
+        run: |
+          # Extract the section for the new version from CHANGELOG.md
+          # Matches from "## vX.Y.Z" until the next "## " or end of file
+          VER="${{ steps.version.outputs.new }}"
+          BODY=$(sed -n "/^## v${VER}$/,/^## /{/^## v${VER}$/d;/^## /d;p}" CHANGELOG.md)
+          # Write to file to preserve newlines
+          echo "$BODY" > /tmp/release_notes.md
+
       - name: Create release
         if: steps.version.outputs.changed == 'true'
         run: |
           gh release create "v${{ steps.version.outputs.new }}" \
             --title "v${{ steps.version.outputs.new }}" \
-            --generate-notes
+            --notes-file /tmp/release_notes.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
