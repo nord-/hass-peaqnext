@@ -71,10 +71,11 @@ HACS requires a zip asset attached to each GitHub release (`hacs.json` has `zip_
 # 3. Create release with zip:
 python -c "
 import zipfile, glob, os
+base = 'custom_components/peaqnext'
 with zipfile.ZipFile('peaqnext.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
-    for f in glob.glob('custom_components/peaqnext/**', recursive=True):
+    for f in glob.glob(base + '/**', recursive=True):
         if os.path.isfile(f) and '__pycache__' not in f and os.sep + 'test' + os.sep not in f:
-            zf.write(f, f.replace(os.sep, '/'))
+            zf.write(f, os.path.relpath(f, base).replace(os.sep, '/'))
 "
 gh release create vX.Y.Z --title "vX.Y.Z" --notes "..."
 gh release upload vX.Y.Z peaqnext.zip
@@ -83,4 +84,4 @@ rm peaqnext.zip
 
 - Zip must use **forward slashes** in paths (not Windows backslashes)
 - Zip must **exclude** test files and `__pycache__`
-- Zip paths must start with `custom_components/peaqnext/`
+- Files must be at the **root** of the zip (no `custom_components/peaqnext/` prefix)
