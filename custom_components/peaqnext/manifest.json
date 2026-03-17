@@ -14,5 +14,5 @@
     "integration_type": "hub",
     "iot_class": "calculated",
     "issue_tracker": "https://github.com/nord-/hass-peaqnext/issues",
-    "version": "0.6.1"
+    "version": "0.6.2"
 }

@@ -18,7 +18,7 @@ class ISpotPriceDTO:
 
     async def set_model(self, ret):
         try:
-            self.today = list(ret.attributes.get("today"))
+            self.today = self._normalize_to_hourly(list(ret.attributes.get("today")))
         except Exception as e:
             _LOGGER.exception(
                 f"Could not parse today's prices from Nordpool. Unsolveable error. {e}"
@@ -27,13 +27,31 @@ class ISpotPriceDTO:
         self.tomorrow_valid = bool(ret.attributes.get("tomorrow_valid", False))
         _tomorrow = ret.attributes.get("tomorrow", [])
         if _tomorrow is not None:
-            self.tomorrow = list(_tomorrow)
+            self.tomorrow = self._normalize_to_hourly(list(_tomorrow))
         else:
             self.tomorrow = []
         self.currency = str(ret.attributes.get("currency", ""))
         self.state = ret.state
         self.average = self._set_average(ret)
         self.price_in_cent = self._set_price_in_cent(ret)
+
+    @staticmethod
+    def _normalize_to_hourly(prices: list) -> list:
+        """Aggregate sub-hourly prices (e.g. 15-min) to hourly averages."""
+        if not prices or len(prices) <= 25:
+            return prices
+        for expected_hours in [24, 23, 25]:
+            if len(prices) % expected_hours == 0:
+                step = len(prices) // expected_hours
+                return [
+                    round(sum(prices[i:i + step]) / step, 6)
+                    for i in range(0, len(prices), step)
+                ]
+        _LOGGER.warning(
+            "Unexpected number of prices (%d), cannot normalize to hourly",
+            len(prices),
+        )
+        return prices
 
     @abstractmethod
     def _set_price_in_cent(self, ret) -> bool:
