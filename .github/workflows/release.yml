@@ -20,7 +20,7 @@ jobs:
       - name: ZIP peaqnext Dir
         run: |
           cd ${{ github.workspace }}/custom_components/peaqnext
-          zip peaqnext.zip -r ./
+          zip peaqnext.zip -r ./ -x '*.pyc' -x '__pycache__/*' -x 'test/*'
       - name: Upload zip to release
         uses: svenstaro/upload-release-action@2.7.0
         with:
