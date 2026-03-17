@@ -59,7 +59,7 @@ Uses factory pattern (`spotprice/spotprice_factory.py`) with `ISpotPrice` interf
 
 ### Key algorithm
 
-The algorithm in `hours.py` works with **hourly** price arrays (24/23/25 entries per day). Sub-hourly prices (e.g. 96 entries for 15-min intervals from Nordpool) are normalized to hourly averages in `ISpotPriceDTO._normalize_to_hourly()` before reaching the algorithm. Consumption pattern is distributed across the duration, then a weighted sum gives total cost per candidate window. Windows are sorted by `comparer` (normalized price). Constraints (non_hours_start, non_hours_end) exclude invalid windows.
+The algorithm in `hours.py` works with **hourly** price arrays (24/23/25 entries per day). Sub-hourly prices (e.g. 96 entries for 15-min intervals from Nordpool) are normalized to hourly averages in `ISpotPriceDTO._normalize_to_hourly()` before reaching the algorithm. Consumption pattern is distributed across the duration, then a weighted sum gives total cost per candidate window. Windows are sorted by `comparer` (normalized price), then `dt_start` as tiebreaker. The `comparer` in `PeriodModel` intentionally rounds to 1 decimal (SEK) / 2 decimals (EUR) — this is **by design** so that near-equal prices favor an earlier start time rather than delaying for marginal savings. Do not increase the precision. Constraints (non_hours_start, non_hours_end) exclude invalid windows.
 
 ## Releasing
 
