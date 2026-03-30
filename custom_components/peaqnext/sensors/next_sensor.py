@@ -7,7 +7,6 @@ from custom_components.peaqnext.service.models.next_sensor.enums.calculate_by im
 from custom_components.peaqnext.service.models.next_sensor.enums.update_by import UpdateBy
 from ..const import DOMAIN, HUB
 from datetime import datetime, timedelta
-from homeassistant.util import dt as dt_util
 
 if TYPE_CHECKING:
     from custom_components.peaqnext.service.hub import Hub
@@ -166,7 +165,7 @@ class PeaqNextSensor(SensorEntity):
         if not self._check_hourmodel(model):
             return ""
 
-        now = dt_util.now()
+        now = datetime.now()
 
         if not self._relative_time:
             # Absolute time display - keep minute precision
