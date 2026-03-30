@@ -74,3 +74,7 @@ This triggers:
 - **`release.yml`** — triggered by the new release, builds and attaches `peaqnext.zip` (HACS requirement via `hacs.json` `zip_release: true`)
 
 The zip must have files at the **root** (no `custom_components/peaqnext/` prefix), exclude test files and `__pycache__`.
+
+## Attribution
+
+Do not add "Co-Authored-By" lines in commit messages or "Generated with Claude Code" in PR descriptions.

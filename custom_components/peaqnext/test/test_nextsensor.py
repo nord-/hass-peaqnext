@@ -367,6 +367,17 @@ async def test_price_change_per_minute():
     assert len(s.all_sequences) > 0
 
 
+def _spanned_hours(dt_start: datetime, dt_end: datetime) -> set[int]:
+    """Return the set of hours (0-23) spanned by a time interval, handling midnight crossover."""
+    hours = set()
+    current = dt_start.replace(minute=0, second=0, microsecond=0)
+    end = dt_end.replace(minute=0, second=0, microsecond=0)
+    while current <= end:
+        hours.add(current.hour)
+        current += timedelta(hours=1)
+    return hours
+
+
 @pytest.mark.asyncio
 async def test_blocked_interval_spans_middle_hours():
     """Verify that intervals spanning through a blocked hour are filtered out, not just start/end."""
@@ -379,8 +390,8 @@ async def test_blocked_interval_spans_middle_hours():
     s.dt_model.set_minute(0)
     await s.async_update_sensor((_p.P230729BE, []), use_cent=False)
     for seq in s.all_sequences:
-        spanned_hours = set(range(seq.dt_start.hour, seq.dt_end.hour + 1))
-        assert 10 not in spanned_hours, f"Sequence {seq.dt_start}-{seq.dt_end} spans blocked hour 10"
+        hours = _spanned_hours(seq.dt_start, seq.dt_end)
+        assert 10 not in hours, f"Sequence {seq.dt_start}-{seq.dt_end} spans blocked hour 10"
 
 
 @pytest.mark.asyncio
@@ -395,8 +406,40 @@ async def test_blocked_interval_spans_middle_hours_end():
     s.dt_model.set_minute(0)
     await s.async_update_sensor((_p.P230729BE, []), use_cent=False)
     for seq in s.all_sequences:
-        spanned_hours = set(range(seq.dt_start.hour, seq.dt_end.hour + 1))
-        assert 15 not in spanned_hours, f"Sequence {seq.dt_start}-{seq.dt_end} spans blocked hour 15"
+        hours = _spanned_hours(seq.dt_start, seq.dt_end)
+        assert 15 not in hours, f"Sequence {seq.dt_start}-{seq.dt_end} spans blocked hour 15"
+
+
+@pytest.mark.asyncio
+async def test_blocked_interval_crossing_midnight_start():
+    """Verify that blocked hours are respected for intervals that cross midnight (non_hours_start)."""
+    nh_start = [0]  # Block midnight hour
+    s = NextSensor(
+        consumption_type=ConsumptionType.Flat, name="test", hass_entity_id="sensor.test",
+        total_duration_in_minutes=180, total_consumption_in_kwh=10, non_hours_start=nh_start
+    )
+    s.dt_model.set_hour(20)
+    s.dt_model.set_minute(0)
+    await s.async_update_sensor((_p.P230729BE, _p.P230731), use_cent=False)
+    for seq in s.all_sequences:
+        hours = _spanned_hours(seq.dt_start, seq.dt_end)
+        assert 0 not in hours, f"Sequence {seq.dt_start}-{seq.dt_end} spans blocked hour 0"
+
+
+@pytest.mark.asyncio
+async def test_blocked_interval_crossing_midnight_end():
+    """Verify that blocked hours are respected for intervals that cross midnight (non_hours_end)."""
+    nh_end = [1]  # Block hour 1
+    s = NextSensor(
+        consumption_type=ConsumptionType.Flat, name="test", hass_entity_id="sensor.test",
+        total_duration_in_minutes=180, total_consumption_in_kwh=10, non_hours_end=nh_end
+    )
+    s.dt_model.set_hour(20)
+    s.dt_model.set_minute(0)
+    await s.async_update_sensor((_p.P230729BE, _p.P230731), use_cent=False)
+    for seq in s.all_sequences:
+        hours = _spanned_hours(seq.dt_start, seq.dt_end)
+        assert 1 not in hours, f"Sequence {seq.dt_start}-{seq.dt_end} spans blocked hour 1"
 
 
 @pytest.mark.asyncio
