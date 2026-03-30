@@ -42,7 +42,7 @@ def calculate_consumption_per_hour(
                 intret = 0
             j += 1
     except Exception as e:
-        _LOGGER.error(f"Error calculating consumption per hour: {e}")
+        _LOGGER.exception("Error calculating consumption per hour")
     return ret
 
 
