@@ -5,6 +5,12 @@ on:
     branches: [main]
     paths:
       - "custom_components/peaqnext/manifest.json"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Run for the current manifest version even if it didn't just change"
+        type: boolean
+        default: true
 
 jobs:
   create_release:
@@ -22,13 +28,21 @@ jobs:
         id: version
         run: |
           NEW_VER=$(python3 -c "import json; print(json.load(open('custom_components/peaqnext/manifest.json'))['version'])")
-          OLD_VER=$(git show HEAD~1:custom_components/peaqnext/manifest.json | python3 -c "import json,sys; print(json.load(sys.stdin)['version'])")
-          echo "old=$OLD_VER" >> "$GITHUB_OUTPUT"
           echo "new=$NEW_VER" >> "$GITHUB_OUTPUT"
-          if [ "$OLD_VER" != "$NEW_VER" ]; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ inputs.force }}" = "true" ]; then
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+            fi
           else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
+            OLD_VER=$(git show HEAD~1:custom_components/peaqnext/manifest.json | python3 -c "import json,sys; print(json.load(sys.stdin)['version'])")
+            echo "old=$OLD_VER" >> "$GITHUB_OUTPUT"
+            if [ "$OLD_VER" != "$NEW_VER" ]; then
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
       - name: Extract changelog for version
@@ -42,11 +56,25 @@ jobs:
           # Write to file to preserve newlines
           echo "$BODY" > /tmp/release_notes.md
 
-      - name: Create release
+      - name: Build peaqnext.zip
         if: steps.version.outputs.changed == 'true'
         run: |
-          gh release create "v${{ steps.version.outputs.new }}" \
-            --title "v${{ steps.version.outputs.new }}" \
-            --notes-file /tmp/release_notes.md
+          cd custom_components/peaqnext
+          zip peaqnext.zip -r ./ -x '*.pyc' -x '__pycache__/*' -x 'test/*'
+
+      - name: Create or update release with asset
+        if: steps.version.outputs.changed == 'true'
+        run: |
+          VER="${{ steps.version.outputs.new }}"
+          TAG="v${VER}"
+          ASSET="custom_components/peaqnext/peaqnext.zip"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; uploading asset with --clobber."
+            gh release upload "$TAG" "$ASSET" --clobber
+          else
+            gh release create "$TAG" "$ASSET" \
+              --title "$TAG" \
+              --notes-file /tmp/release_notes.md
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
