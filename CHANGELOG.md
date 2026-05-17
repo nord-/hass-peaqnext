@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.6.3
+
+### Fix: Nordpool entity discovery on newer Home Assistant
+
+`homeassistant.helpers.template` was restructured into a package in recent Home Assistant versions and `integration_entities` is no longer a module-level function (it now lives as a Jinja method on `ConfigEntryExtension`). The old call raised `AttributeError`, left the spotprice entity unset, and crashed the Hub when `async_track_state_change_event` received `[None]`.
+
+- Look up entities via `homeassistant.helpers.entity.entity_sources` directly — the same fallback logic the original helper used internally.
+- Guard the Hub against a missing spotprice entity so a misconfigured environment logs an error instead of crashing setup.
+
+Fixes elden1337/hass-peaqnext#34.
+
 ## v0.6.2
 
 ### Fix: Incorrect price mapping for sub-hourly Nordpool data
