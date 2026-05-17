@@ -26,11 +26,16 @@ class Hub:
         self.spotprice: ISpotPrice = SpotPriceFactory.create(self, test)
         self.latest_spotprice_update = 0
         if not test:
-            async_track_state_change_event(
-                self.state_machine,
-                [self.spotprice.entity],
-                self._async_on_change,
-            )
+            if self.spotprice.entity:
+                async_track_state_change_event(
+                    self.state_machine,
+                    [self.spotprice.entity],
+                    self._async_on_change,
+                )
+            else:
+                _LOGGER.error(
+                    "No Spotprice entity available; state-change tracking disabled."
+                )
 
     async def async_setup(self, sensors: list[NextSensor]) -> None:
         self.sensors.extend(sensors)
