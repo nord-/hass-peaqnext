@@ -3,7 +3,7 @@ from custom_components.peaqnext.service.spotprice.spotprice_dto import NordpoolD
 from custom_components.peaqnext.service.spotprice.const import NORDPOOL
 import logging
 import asyncio
-import homeassistant.helpers.template as template
+from homeassistant.helpers.entity import entity_sources
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -22,15 +22,19 @@ class NordPoolUpdater(ISpotPrice):
 
     def setup(self):
         try:
-            entities = template.integration_entities(self.state_machine, self._source)
-            _LOGGER.debug(f"Found {list(entities)} Spotprice entities.")
-            if len(list(entities)) < 1:
+            entities = [
+                entity_id
+                for entity_id, info in entity_sources(self.state_machine).items()
+                if info.get("domain") == self._source
+            ]
+            _LOGGER.debug(f"Found {entities} Spotprice entities.")
+            if len(entities) < 1:
                 raise Exception("no entities found for Spotprice.")
-            if len(list(entities)) == 1:
+            if len(entities) == 1:
                 self._setup_set_entity(entities[0])
             else:
                 _found: bool = False
-                for e in list(entities):
+                for e in entities:
                     if self._test_sensor(e):
                         _found = True
                         self._setup_set_entity(e)
